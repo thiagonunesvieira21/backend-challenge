@@ -1,6 +1,5 @@
 package com.invillia.acme.beans;
 
-import java.time.LocalDateTime;
 import java.util.Set;
 
 import javax.validation.constraints.NotEmpty;
@@ -19,34 +18,23 @@ import io.swagger.annotations.ApiModelProperty;
 public class CreateOrder {
 
 	private String street, city, zipCode, state;
-	private LocalDateTime confirmation;
-	private Integer storeId;
+	private Long storeId;
 	private Set<CreateOrderItem> itens;
 	
 	public CreateOrder() {
 		super();
 	}
 
-	public CreateOrder(String street, String city, String zipCode, String state, LocalDateTime confirmation, Integer storeId) {
+	public CreateOrder(String street, String city, String zipCode, String state, Long storeId, Set<CreateOrderItem> itens) {
 		super();
 		this.street = street;
 		this.city = city;
 		this.zipCode = zipCode;
 		this.state = state;
-		this.confirmation = confirmation;
 		this.storeId = storeId;
+		this.itens = itens;
 	}
 
-	@ApiModelProperty(required = true)
-	@NotNull
-	public LocalDateTime getConfirmation() {
-		return confirmation;
-	}
-
-	public void setConfirmation(LocalDateTime confirmation) {
-		this.confirmation = confirmation;
-	}
-	
 	@ApiModelProperty(required = true)
 	@NotEmpty
 	@NotNull
@@ -97,11 +85,11 @@ public class CreateOrder {
 
 	@ApiModelProperty(required = true)
 	@NotNull
-	public Integer getStoreId() {
+	public Long getStoreId() {
 		return storeId;
 	}
 
-	public void setStoreId(Integer storeId) {
+	public void setStoreId(Long storeId) {
 		this.storeId = storeId;
 	}
 

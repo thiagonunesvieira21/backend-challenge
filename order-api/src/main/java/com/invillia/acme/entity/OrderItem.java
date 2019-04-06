@@ -39,6 +39,7 @@ public class OrderItem implements Serializable {
 	private Long id;
 	private String description;
 	private Integer quantity;
+	private String status;
 	private BigDecimal unitPrice;
 	private Order order;
 	
@@ -46,12 +47,13 @@ public class OrderItem implements Serializable {
 		super();
 	}
 
-	public OrderItem(String description, Integer quantity, BigDecimal unitPrice, Order order) {
+	public OrderItem(String description, Integer quantity, BigDecimal unitPrice, Order order, String status) {
 		super();
 		this.quantity = quantity;
 		this.unitPrice = unitPrice;
 		this.description = description;
 		this.order = order;
+		this.status = status;
 	}
 
 	@Id
@@ -83,6 +85,15 @@ public class OrderItem implements Serializable {
 		this.quantity = quantity;
 	}
 
+	@Column(name = "co_status")
+	public String getStatus() {
+		return status;
+	}
+
+	public void setStatus(String status) {
+		this.status = status;
+	}
+	
 	@Column(name = "vr_unit_price")
 	public BigDecimal getUnitPrice() {
 		return unitPrice;

@@ -10,7 +10,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-public class InvilliaApplicationTests {
+public class StoreApplicationTests {
 	
 	@Value("${MN001}")
 	protected String MN001;

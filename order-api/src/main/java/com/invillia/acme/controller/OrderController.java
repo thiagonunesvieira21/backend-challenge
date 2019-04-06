@@ -1,5 +1,6 @@
 package com.invillia.acme.controller;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -7,7 +8,6 @@ import java.util.Optional;
 
 import javax.persistence.NoResultException;
 import javax.validation.Valid;
-import javax.validation.constraints.Pattern;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,9 +37,11 @@ import com.invillia.acme.beans.CreateOrder;
 import com.invillia.acme.beans.CreateOrderItem;
 import com.invillia.acme.beans.SearchOrder;
 import com.invillia.acme.entity.Order;
+import com.invillia.acme.entity.OrderItem;
 import com.invillia.acme.enums.Menssages;
 import com.invillia.acme.enums.OrderStatus;
 import com.invillia.acme.exceptions.InvalidRequestException;
+import com.invillia.acme.service.OrderItemService;
 import com.invillia.acme.service.OrderService;
 
 import io.swagger.annotations.Api;
@@ -53,12 +55,18 @@ public class OrderController extends BaseController {
 
 	@Value("${api.store-uri}")
 	String apiStoreUri;
+	
+	@Value("${api.payment-uri}")
+	String apiPaymentUri;
 
 	@Autowired
 	RestTemplate restTemplate;
 
 	@Autowired
 	private OrderService service;
+	
+	@Autowired
+	private OrderItemService serviceItem;
 
 	/**
 	 * Endpoint que prover a consulta de Order pela pk 
@@ -107,35 +115,58 @@ public class OrderController extends BaseController {
 	}
 	
 	/**
-     * Endpoint que prover a atualizar o status da order
-     * @param status
+     * Endpoint que prover o cancelamento da order
      * @param orderId
      * @param result
      * @return ResponseEntity<?>
      */
-    @ApiOperation(value = "Serviço responsável por atualizar o status da order")
-    @RequestMapping(value = "/updateStatus/{orderId}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<?> update(@RequestBody @Valid @Pattern(regexp="P|G|C") String status, @PathVariable Long orderId,
-                                    BindingResult result) {
+    @ApiOperation(value = "Serviço responsável por cancelar a order")
+    @RequestMapping(value = "/cancelOrder/{orderId}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<?> cancelOrder(@PathVariable Long orderId, @RequestHeader HttpHeaders headers) {
 
-        if (result.hasErrors()) {
-            throw new InvalidRequestException("Validação do atualizacao de store", result);
-        }
+    	Optional<Order> optional = service.findById(orderId);
 
-        Optional<Order> optional = service.findById(orderId);
-
-        if (optional == null) {
-            throw new NoResultException(getMenssage(Menssages.MN003.value));
-        }
+    	if (optional == null) {
+    		throw new NoResultException(getMenssage(Menssages.MN003.value));
+    	}
+    	
+    	validPaymentExpired(orderId, headers);
         
         Order order = optional.get();
         
-        order.setStatus(status);
-        order = service.save(order);
+        order = service.cancelar(order);
         
         HashMap<String, Object> map = new HashMap<>();
-        map.put("msg", getMenssage(Menssages.MN002.value));
+        map.put("msg", getMenssage(Menssages.MN004.value));
         map.put("id", order.getId());
+        return new ResponseEntity<>(map, HttpStatus.OK);
+    }
+    
+    /**
+     * Endpoint que prover o cancelamento de item order
+     * @param orderItemId
+     * @param result
+     * @return ResponseEntity<?>
+     */
+    @ApiOperation(value = "Serviço responsável por cancelar o item order")
+    @RequestMapping(value = "/cancelOrderItem/{orderItemId}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<?> cancelOrderItem(@PathVariable Long orderItemId, @RequestHeader HttpHeaders headers) {
+
+    	Optional<OrderItem> optional = serviceItem.findById(orderItemId);
+
+    	if (optional == null) {
+    		throw new NoResultException(getMenssage(Menssages.MN003.value));
+    	}
+        
+    	OrderItem orderItem = optional.get();
+
+        validPaymentExpired(orderItem.getOrder().getId(), headers);
+        
+        orderItem = serviceItem.cancelar(orderItem);
+        
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("msg", getMenssage(Menssages.MN004.value));
+        map.put("id", orderItem.getId());
         return new ResponseEntity<>(map, HttpStatus.OK);
     }
 
@@ -168,11 +199,34 @@ public class OrderController extends BaseController {
 	 */
 	private void validStore(CreateOrder model, HttpHeaders headers) {
 		HttpEntity<String> entity = new HttpEntity<String>("parameters", headers);
-        ResponseEntity<String> resultStore = this.restTemplate.exchange(apiStoreUri + model.getStoreId(), HttpMethod.GET, entity, String.class);
-        
-        if(resultStore.getStatusCode().equals(HttpStatus.OK)) {
-        	 throw new NoResultException(getMenssage(Menssages.MN003.value));
-        }
+		
+		try {
+	        ResponseEntity<String> resultStore = this.restTemplate.exchange(apiStoreUri + model.getStoreId(), HttpMethod.GET, entity, String.class);
+	        if(resultStore.getStatusCode().equals(HttpStatus.OK)) {
+	        	 throw new NoResultException(getMenssage(Menssages.MN003.value));
+	        }
+		} catch (Exception e) {
+			//@TODO Tratar indisponibilidade da API de Store
+		}
+	}
+	
+	/**
+	 * Realiza a verificação se o pagamento está expirado. Consome a API Payment.
+	 * @param orderId
+	 * @param headers
+	 */
+	private void validPaymentExpired(Long orderId, HttpHeaders headers) {
+		HttpEntity<String> entity = new HttpEntity<String>("parameters", headers);
+       
+		try {
+			ResponseEntity<String> resultStore = this.restTemplate.exchange(apiPaymentUri+ "checkExpired/" + orderId, HttpMethod.GET, entity, String.class);
+	        
+	        if(!resultStore.getStatusCode().equals(HttpStatus.OK)) {
+	        	 throw new NoResultException(getMenssage(Menssages.MN005.value));
+	        }
+		} catch (Exception e) {
+			//@TODO Tratar indisponibilidade da API de Store
+		}
 	}
 	
 	private void prepareOrder(CreateOrder model, Order order) {
@@ -181,6 +235,8 @@ public class OrderController extends BaseController {
 
 		order.setItens(new HashSet<>());
 		order.setStatus(OrderStatus.P.name());
+		order.setConfirmation(LocalDateTime.now());
+		
 		for (CreateOrderItem item : model.getItens()) {
 			order.addOrdemItem(item);
 		}

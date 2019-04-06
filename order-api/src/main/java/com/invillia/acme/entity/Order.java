@@ -20,6 +20,7 @@ import javax.persistence.Table;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.invillia.acme.beans.CreateOrderItem;
+import com.invillia.acme.enums.OrderStatus;
 
 import io.swagger.annotations.ApiModel;
 
@@ -161,7 +162,7 @@ public class Order implements Serializable {
 	}
 
 	public void addOrdemItem(CreateOrderItem orderItem) {
-		this.getItens().add(new OrderItem(orderItem.getDescription(), orderItem.getQuantity(), orderItem.getUnitPrice(), this));
+		this.getItens().add(new OrderItem(orderItem.getDescription(), orderItem.getQuantity(), orderItem.getUnitPrice(), this, OrderStatus.P.name()));
 	}
 	
 }

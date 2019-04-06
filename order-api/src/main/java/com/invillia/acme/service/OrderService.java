@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.invillia.acme.beans.SearchOrder;
 import com.invillia.acme.entity.Order;
+import com.invillia.acme.enums.OrderStatus;
 import com.invillia.acme.repository.IOrderRepository;
 
 /**
@@ -32,4 +33,10 @@ public class OrderService extends GenericService<Order, Long> {
 		
 		return repository.find(dto.getStatus(), dto.getConfirmation(), dto.getStreet(), dto.getCity(), dto.getZipCode(), dto.getState(),pageable);
 	}
+
+	public Order cancelar(Order order) {
+		order.setStatus(OrderStatus.C.name());
+		return super.save(order);
+	}
+	
 }

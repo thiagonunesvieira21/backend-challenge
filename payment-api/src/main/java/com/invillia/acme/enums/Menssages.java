@@ -3,8 +3,7 @@ package com.invillia.acme.enums;
 public enum Menssages {
 	
 	MN001("MN001"),
-	MN002("MN002"),
-	MN003("MN003");
+	MN002("MN002");
 	
 	public String value;
 	

@@ -1,13 +1,14 @@
 package com.invillia.acme.service;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
+import java.util.List;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.invillia.acme.entity.Payment;
+import com.invillia.acme.enums.PaymentStatus;
 import com.invillia.acme.repository.IPaymentRepository;
 
 /**
@@ -31,11 +32,12 @@ public class PaymentService extends GenericService<Payment, String> {
 		
 		String sha256hex = DigestUtils.sha256Hex(payment.toString());
 		payment.setId(sha256hex);
+		payment.setStatus(PaymentStatus.A.name());
 		
 		return super.save(payment);
 	}
 
-	public Optional<String> findByStoreIdAndNotExpired(Long orderId) {
+	public List<Payment> findByStoreIdAndNotExpired(Long orderId) {
 		LocalDateTime date = LocalDateTime.now().minusDays(10);
 		return repository.findByStoreIdAndPaymentDateLessTenDay(orderId, date);
 	}

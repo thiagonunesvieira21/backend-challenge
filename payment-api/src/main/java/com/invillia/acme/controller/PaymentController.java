@@ -1,7 +1,7 @@
 package com.invillia.acme.controller;
 
 import java.util.HashMap;
-import java.util.Optional;
+import java.util.List;
 
 import javax.persistence.NoResultException;
 import javax.validation.Valid;
@@ -57,11 +57,11 @@ public class PaymentController extends BaseController {
 	 */
 	@ApiOperation(value = "Buscar payment pelo ID da Order", response = Payment.class, notes = "Verifica se pelo ID da Order se o pagamento está vencido", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 	@RequestMapping(value = "/checkExpired/{orderId}", method = RequestMethod.GET, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-	public ResponseEntity<?> getStoreById(@PathVariable final Long orderId) {
-		Optional<String> store = service.findByStoreIdAndNotExpired(orderId);
+	public ResponseEntity<?> getCheckExpired(@PathVariable final Long orderId) {
+		List<Payment> store = service.findByStoreIdAndNotExpired(orderId);
 		
 		if(store==null) {
-			throw new NoResultException(getMenssage(Menssages.MN003.value));
+			throw new NoResultException(getMenssage(Menssages.MN002.value));
 		}
 		
 		return ResponseEntity.ok(store);
@@ -88,7 +88,7 @@ public class PaymentController extends BaseController {
         
         this.preparePayment(model, payment);
         
-        payment = service.save(payment);
+        payment = service.savePayment(payment);
 
         HashMap<String, Object> map = new HashMap<>();
         map.put("msg",  getMenssage(Menssages.MN001.value));
@@ -103,17 +103,22 @@ public class PaymentController extends BaseController {
 	 */
 	private void validOrder(@Valid CreatePayment model, HttpHeaders headers) {
 		HttpEntity<String> entity = new HttpEntity<String>("parameters", headers);
-        ResponseEntity<String> resultStore = this.restTemplate.exchange(apiOrderUri + model.getOrderId(), HttpMethod.GET, entity, String.class);
+		
+		try {
+			ResponseEntity<String> resultStore = this.restTemplate.exchange(apiOrderUri + model.getOrderId(), HttpMethod.GET, entity, String.class);
         
-        if(resultStore.getStatusCode().equals(HttpStatus.OK)) {
-        	 throw new NoResultException(getMenssage(Menssages.MN002.value));
-        }
+	        if(resultStore.getStatusCode().equals(HttpStatus.OK)) {
+	        	 throw new NoResultException(getMenssage(Menssages.MN002.value));
+	        }
+        }catch (Exception e) {
+        	//@TODO Tratar indisponibilidade da API de Store
+		}
 	}
 
 
-	private void preparePayment(CreatePayment model, Payment store) {
+	private void preparePayment(CreatePayment model, Payment payment) {
 
-		BeanUtils.copyProperties(model, store);
+		BeanUtils.copyProperties(model, payment);
 		
 	}
 }

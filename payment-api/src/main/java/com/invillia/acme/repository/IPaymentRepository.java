@@ -4,10 +4,11 @@
 package com.invillia.acme.repository;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
+import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import com.invillia.acme.entity.Payment;
 
@@ -18,9 +19,9 @@ import com.invillia.acme.entity.Payment;
  */
 public interface IPaymentRepository extends JpaRepository<Payment, String> {
 
-	@Query("SELECT max(p.id) FROM Payment p WHERE "
+	@Query("SELECT p FROM Payment p WHERE "
 			+ " p.orderId = :orderId "
-			+ " AND p.paymentDate > :date")
-	Optional<String> findByStoreIdAndPaymentDateLessTenDay(Long orderId, LocalDateTime date);
+			+ " AND p.paymentDate > :date ")
+	List<Payment> findByStoreIdAndPaymentDateLessTenDay(@Param("orderId") Long orderId, @Param("date") LocalDateTime date);
 
 }

@@ -1,8 +1,7 @@
 package com.invillia.acme.enums;
 
 public enum OrderStatus {
-	P("PENDENTE"),
-	G("PAGO"),
+	P("PAGO"),
 	C("CANCELADO");
 	
     private String descricao;

@@ -1,0 +1,3 @@
+INSERT INTO tb01_store(nu_store, no_store, no_street, co_zip_code, no_city, no_state) VALUES(20, 'strore1', 'street1', '123456', 'city 1', 'go');
+INSERT INTO tb01_store(nu_store, no_store, no_street, co_zip_code, no_city, no_state) VALUES(21, 'strore2', 'street1', '123456', 'city 2', 'df');
+INSERT INTO tb01_store(nu_store, no_store, no_street, co_zip_code, no_city, no_state) VALUES(22, 'strore3', 'street1', '123456', 'city 3', 'mg');

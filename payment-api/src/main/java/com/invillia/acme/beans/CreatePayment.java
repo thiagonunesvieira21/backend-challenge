@@ -17,6 +17,12 @@ public class CreatePayment {
 		super();
 	}
 
+	public CreatePayment(String creditCardNumber, Long orderId) {
+		super();
+		this.creditCardNumber = creditCardNumber;
+		this.orderId = orderId;
+	}
+
 	@ApiModelProperty(required = true)
 	@NotEmpty
 	@NotNull
