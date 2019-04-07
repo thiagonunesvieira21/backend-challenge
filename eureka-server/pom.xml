@@ -3,16 +3,23 @@
 	xmlns="http://maven.apache.org/POM/4.0.0"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
+	
+	<groupId>com.invillia.acme</groupId>
 	<artifactId>eureka-server</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
 	<description>Spring Cloud Eureka Server</description>
 	<packaging>jar</packaging>
-
-	<parent>
-		<groupId>com.invillia.acme</groupId>
-		<artifactId>invillia</artifactId>
-		<version>0.0.1-SNAPSHOT</version>
-		<relativePath>..</relativePath>
-	</parent>
+	
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<spring-boot-maven-plugin.version>2.0.1.RELEASE</spring-boot-maven-plugin.version>
+		<commons-config.version>1.10</commons-config.version>
+		<spring-boot.version>2.0.1.RELEASE</spring-boot.version>
+		<spring-cloud-dependencies.version>Finchley.SR2</spring-cloud-dependencies.version>
+		<maven.compiler.target>1.8</maven.compiler.target>
+		<maven.compiler.source>1.8</maven.compiler.source>
+	</properties>
 
 	<dependencies>
 		<dependency>

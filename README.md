@@ -1,53 +1,124 @@
+## Thiago Nunes Vieira
+
+https://github.com/thiagonunesvieira21/backend-challenge.git
+
 # Invillia recruitment challenge
 
-[![Build Status](https://travis-ci.org/shelsonjava/invillia.svg?branch=master)](https://travis-ci.org/shelsonjava/invillia)
+		O projeto invilia foi separado em 5 módulos para atender as princípios de arquitetura de microsserviços. Cada módulo contém o seu próprio Dockerfile o que permite o isolando dos ambientes de cada projeto. 
+	
+		A solução apresentada permite o gerenciar e a localização dos microsserviços por meio do netflix-eureka.
+		
+		A solução possibilita uma alta escalabilidade graça ao docker e balanceamento de carga 	realizado com o netflix-zuul.
+		
+		Na solução não foi um mecanismo para tolerância a falha além do zuul load balancing com 	maior tempo seria possível utilizar o Hystrix para implementar o padrão Circuit Breaker.
 
-![Invillia Logo](https://invillia.com/public/assets/img/logo-invillia.svg)
-[Invillia](https://https://www.invillia.com/) - A transformação começa aqui.
+## Estrutura do Projeto:
 
-The ACME company is migrating their monolithic system to a microservice architecture and you’re responsible to build their MVP (minimum viable product)  .
-https://en.wikipedia.org/wiki/Minimum_viable_product
 
-Your challenge is:
-Build an application with those features described below, if you think the requirements aren’t detailed enough please leave a comment (portuguese or english) and proceed as best as you can.
+	├── invillia			#Maven pom project
+	│   ├── eureka-server		#Maven module project para gerenciar o status e a localização dos Microservices
+	│   ├── keycloak		#Pasta contendo a image jboss/keycloak:1.9.1.Final e o import do realm de segurança
+	│   ├── order-api		#Maven module microservice project Order
+	│   ├── payment-api		#Maven module microservice project Payment
+	│   ├── store-api		#Maven module microservice project Store
+	│   └── zull-server		#Maven module project para load balancing
+	│
+	└── docker-compose.yml	#Docker compose
 
-You can choose as many features you think it’s necessary for the MVP,  IT’S NOT necessary build all the features, we strongly recommend to focus on quality over quantity, you’ll be evaluated by the quality of your solution.
+## Instruções para compilar e excutar o projeto:
+		
+# Requer o docker instalado
 
-If you think something is really necessary but you don’t have enough time to implement please at least explain how you would implement it.
+		>> docker-compose up
 
-## Tasks
+# Keycloak
+	user: admin
+	password: invillia
+	
 
-Your task is to develop one (or more, feel free) RESTful service(s) to:
-* Create a **Store**
-* Update a **Store** information
-* Retrieve a **Store** by parameters
-* Create an **Order** with items
-* Create a **Payment** for an **Order**
-* Retrieve an **Order** by parameters
-* Refund **Order** or any **Order Item**
+## RESTful service(s) URIs:
 
-Fork this repository and submit your code with partial commits.
+* MicroService API **Store**:
 
-## Business Rules
+				GET: 	'/api/v1/store/{storeId}' - Buscar store pelo ID
+				GET:  '/api/v1/store' - Buscar store por filtros
+				POST: '/api/v1/store' - Serviço responsável por cadastrar a Store
+				PUT:  '/api/v1/store/{storeId}' - Serviço responsável por atualizar o store
 
-* A **Store** is composed by name and address
-* An **Order** is composed by address, confirmation date and status
-* An **Order Item** is composed by description, unit price and quantity.
-* A **Payment** is composed by status, credit card number and payment date
-* An **Order** just should be refunded until ten days after confirmation and the payment is concluded.
+* MicroService API **Order**:
 
-## Non functional requirements
+				GET:  '/api/v1/order/{orderId}' - Buscar order pelo ID
+				GET:  '/api/v1/order' - Buscar order por filtros
+				POST: '/api/v1/order' - Serviço responsável por cadastrar a Order
+				PUT:  '/api/v1/order/cancelOrder/{orderId}' - Serviço responsável por cancelar a order
+				PUT:  '/api/v1/order/cancelOrderItem/{orderItemId}' - Serviço responsável por cancelar a orderItem
 
-Your service(s) must be resilient, fault tolerant, responsive. You should prepare it/them to be highly scalable as possible.
+* MicroService API **Payment**:
 
-The process should be closest possible to "real-time", balancing your choices in order to achieve the expected
-scalability.
+				GET:  '/api/v1/payment/checkExpired/{orderId}' - Verifica se pelo ID da Order se o pagamento está vencido
+				POST: '/api/v1/payment' - Serviço responsável por cadastrar o Payment
 
-## Nice to have features (describe or implement):
-* Asynchronous processing
+
+## Descrição da implementação:
+
+* Asynchronous 
+	
+	Não foi implementado nenhum método/serviço assíncrono. 
+	 
 * Database
-* Docker
+	
+	Postgres - usando uma imagem docker (postgres:10.4). As configurações do banco estão no docker-compose.yml:
+		 docker-postgres:
+		    image: postgres:10.4
+		    environment:
+		      - POSTGRES_DB=invillia
+		      - POSTGRES_USER=postgres
+		      - POSTGRES_PASSWORD=invillia
+		      
+	H2 - utilizado somente para os teste de integração e unitários.
+	
 * AWS
-* Security
+	
+	Serviço EC2 instância ubuntu 18.04. Utilização do software Putty para acessar a instância via SSH. 
+	
+* Docker	 -> Instalação na instância ubuntu 18.04 via console com comandos:
+			 
+	 >> sudo apt-get update
+	 >> sudo apt-get install apt-transport-https ca-certificates curl software-properties-common
+	 >> curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add –
+	 >> sudo add-apt-repository deb [arch=amd64] https://download.docker.com/linux/ubuntu  $(lsb_release -cs)  stable
+	 >> sudo apt-get update	
+	 >> sudo apt-get install docker-ce
+		 
+
+* Security 
+
+	Segurança baseada em oauth2 com Keycloak com client confidential. Configuração anotando a classe de configuração com @EnableOAuth2Client e sobrescrevendo o método OAuth2ProtectedResourceDetails 	e criando o ClientCredentialsResourceDetails	informando o clientId, clientSecret e accessTokenUri   
+
 * Swagger
+
+	Utilização do maven dependency:
+		
+		<dependency>
+			<groupId>io.springfox</groupId>
+			<artifactId>springfox-swagger2</artifactId>
+			<version>${springfox.version}</version>
+		</dependency>
+		
+	A configuração do swagger com classe de configuração Spring. Configuração anotando com @EnableSwagger2 e habilitando o botão de segurança para geração do Token para segurançã.
+	
+	MicroService API Store:
+		http://{server-host}:8083/swagger-ui.html
+
+	MicroService API Order:
+		http://{server-host}:8084/swagger-ui.html		
+
+	MicroService API Payment:
+		http://{server-host}:8085/swagger-ui.html
+	
 * Clean Code
+
+	Para um código limpo foi empregado os princípios SOLID. Foi realizada uma única passagem para refatoração em todo o código. Em uma segunda passagem eu gostaria de mover todas as classes comuns para um novo módulo e importa-lo com uma dependência maven, exemplo as classes:
+		InvalidRequestException;
+		GenericService; e 
+		BaseController. 

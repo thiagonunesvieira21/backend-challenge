@@ -1,4 +1,4 @@
-FROM jboss/keycloak:1.9.1.Final
+FROM jboss/keycloak
 
 ARG KEYCLOAK_ADMIN_USER=admin
 ARG KEYCLOAK_ADMIN_PASWORD=invillia
